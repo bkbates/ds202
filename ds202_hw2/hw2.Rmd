@@ -1,0 +1,106 @@
+---
+title: 'Homework #2'
+author: "Brian Bates; bkbates"
+output: html_document
+
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+This homework is about syntax and basic plotting functions in R, and is **due on Feb 5** before class.
+
+You can use the RMarkDown file with these homework instructions as a template for your work. 
+Make sure to replace "Your Name" and "your_github_username" in the YAML with your name and Github username.
+
+**Submission instructions**: Create a folder named `ds202_hw2`, and name the RMarkDown file including your solutions `hw2.Rmd` under this folder. For submission, create a GitHub repository named `ds202_hw2` under your account, and push both `hw2.Rmd` and the knitted `hw2.html` to GitHub before the deadline. I will assume you use the same GitHub username as for your HW1 submission. The latest version of your homework appearing on GitHub before the deadline is graded. *It is crucial to follow the exact folder structure and file names*, so that your homework can be reproduced and graded by an automated script. Some questions will require the following answer format.
+
+## R commands
+1. Today's temperature has a high of 15 and a low of -10 degree fahrenheit.  Find the corresponding degress in celsius and storage it in a (single) vector named `cel`. Print the variable.
+
+```{r}
+cel = c(-9.44, -23.33)
+cel
+```
+
+2. Create a vector of length 200. The odd entries should be 1 and even entries should be 0. Storage the created in a variable named `vec200` and print.
+
+```{r}
+v = seq(200)
+vec200 = v %% 2
+vec200
+```
+
+
+3. How many perfect squares are there between 1 and 1001? Storage the answer in a  variable named `numPerfect` and print. You may want to look at `?round`.
+
+```{r}
+numPerfect = floor(sqrt(1001))
+numPerfect
+```
+
+
+## Cars and mileage
+For this part we will use the `mpg` data set, you can access the data by loading the package `ggplot2` into your R session by executing the command 
+`library(ggplot2)`. The `mpg` data includes information about fuel economy of popular car models
+for the years 1999 and 2008 as collected by the US Environmental Protection Agency. An answer should include a short paragraph of text for the explanation to a (human) reader, together with appropriate R code, outputs, and graphs.
+
+Most exercises are from the ggplot2 book section 2.2.1. You might find it helpful for working on the homework to read through this section. *However, all questions can be solved by using just the basic R graphics functions.*
+
+1. What are the 3 most fuel-efficient models in terms of highway mileage? Storage the data frame (with 3 rows) containing all information of these three cars in a variable named `top3` and print.
+
+```{r}
+library(ggplot2)
+top3 = mpg[order(mpg$hwy, decreasing=TRUE),][1:3,]
+top3
+```
+
+2. How many different compact models are included in this dataset? Storage the answer in  a variable named `numCompact` and print.
+
+```{r}
+models = mpg$model[mpg$class == "compact"]
+numCompact = unique(models)
+numCompact
+```
+
+3. Create a scatterplot of `hwy` and `cty` and describe the relationship. Why are there so few points visible?
+
+```{r}
+plot(mpg$hwy, mpg$cty, main="Highway vs City MPG", xlab="Highway MPG", ylab="City MPG")
+```
+<br/>
+There are so few points because they are overlapping.  To better illustrate what is happening
+it might be easier to see the density functions for highway and city MPG.
+
+4. Are cars in 2008 more fuel efficient than cars in 1999? Use graphs *and* summary statistics to answer this question. 
+```{r}
+plot(density(mpg$hwy[mpg$year == 1999]), col = "red", main="Highway MPG")
+lines(density(mpg$hwy[mpg$year == 2008]), col = "blue")
+legend("right", legend=c("1999", "2008"), col=c("red", "blue"), lty=c(1,1))
+```
+
+```{r}
+plot(density(mpg$cty[mpg$year == 1999]), col = "red", main="City MPG")
+lines(density(mpg$cty[mpg$year == 2008]), col = "blue")
+legend("right", legend=c("1999", "2008"), col=c("red", "blue"), lty=c(1,1))
+```
+<br/>
+
+```{r}
+city_data_1999 = mpg$cty[mpg$year == 1999]
+summary(city_data_1999)
+
+city_data_2008 = mpg$cty[mpg$year == 2008]
+summary(city_data_2008)
+```
+
+```{r}
+hwy_data_1999 = mpg$hwy[mpg$year == 1999]
+summary(hwy_data_1999)
+
+hwy_data_2008 = mpg$hwy[mpg$year == 2008]
+summary(hwy_data_2008)
+```
+<br/>
+My conclusion is that cars are less efficient in the city but more efficient on the highway.  The city data shows the median value held steady, but the mean value dropped from 17.02 to 16.7 MPG, thus a decline in city efficiency.  On the other hand, both the median and mean value for highway MPG rose, from 17.00 to 24.00 in the median value and 17.02 to 23.45 in the mean value.  This is easier to see in the density plots for both.
