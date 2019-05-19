@@ -1,0 +1,22 @@
+---
+title: "Partner"
+author:
+- "Ravi Patel"
+- "rspatel"
+date: "January 24, 2019"
+output: html_document
+---
+
+1. 
+Name: Brain Bates  
+GitHub: bkbates
+
+2. 
+"Added homework files"  
+ID: 574cbb7bc336e9ae3f6e37543680a34d3ade15f1
+
+3.
+I was able to knit Brain's hw1.rmd without errors.
+
+4.
+To make using git bash easier download an additional package to show a visual representation of **git log**.

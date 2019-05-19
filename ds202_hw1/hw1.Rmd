@@ -1,0 +1,26 @@
+---
+title: "Hw1"
+author: "Brian Bates"
+date: "1/17/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## An Example of Data Science
+
+One example of data science I have experience with is in the financial services industry creating optimal portfolios.  The process is simple using Microsoft Excel and begins with collecting *at least* ten years of financial data on a collection of stocks from a site like Yahoo Finance.  A statistical analysis of the historical daily stock price changes can then be used to create a covariance matrix and using the Sharpe ratio and a nonlinear optimization routine in Solver, we can determine the optimal weights of each stock in the portfolio.   
+
+![Fig 1.  Optimal portfolio using Excel](http://4.bp.blogspot.com/-BnoNNk4SctE/TdxaYBaQ6II/AAAAAAAAA9Q/wZZnhSHqVjQ/s1600/Sharpe+Optimal+Portfolio.png)
+
+## Version of R
+
+The current version of R can be found by typing **version** into the R console as below.  Note the code command below shows both the *trunk* of the code as well as the output.
+
+```{r version}
+version
+```
+
+
