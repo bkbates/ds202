@@ -1,0 +1,158 @@
+---
+title: 'Homework #5'
+author: "Brian Bates"
+date: "4/5/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+library(dplyr)
+library(ggplot2)
+library(stringr)
+library(lubridate) # Time
+library(scales)    # For currency
+```
+
+## Liquor Sales in Iowa
+
+This dataset https://data.iowa.gov/Economy/Iowa-Liquor-Sales/m3tr-qhgy contains the spirits purchase information of Iowa Class “E” liquor licensees by product and date of purchase from January 1, 2012 to current. The dataset can be used to analyze total spirits sales in Iowa of individual products at the store level.
+
+**Submission instructions**: Create a folder named `ds202_hw5`, and name the RMarkDown file including your solutions `hw5.Rmd` under this folder. For the submission, create a GitHub repository named `ds202_hw5` under your GitHub account, and push both `hw5.Rmd` and the knitted `hw5.html` before the deadline. I will assume you use the same GitHub username as for your HW4 submission. The latest version of your homework appearing on GitHub before the deadline is graded. *It is crucial to follow the exact folder structure and file names*, so that your homework can be reproduced and graded by an automated script. This homework is **due on April 11** before class.
+
+1. The code below downloads the data for Ames only and saves a local copy to your machine. The first time you run this code, make sure you have a good internet connection and enough space on your machine (~50 MB). If the local copy exists, re-knitting the file will load the (binary) file from disk and be much faster. 
+```{r, cache=TRUE}
+if (file.exists("alcohol.rds")) {
+  data <- readRDS("alcohol.rds")
+} else {
+  url <- "https://xdaiisu.github.io/ds202materials/data/ames.csv"
+  data <- readr::read_csv(url)
+  saveRDS(data, file="alcohol.rds")
+}
+
+# If needed
+getOriginalData = function() {
+  data <- readRDS("alcohol.rds")
+}
+
+```
+
+
+2. Data cleaning: 
+  - extract geographic latitude and longitude from the variable `Store Location`
+ 
+```{r}
+# Make a copy of the original data
+new_data <- data
+
+#head(new_data$`Store Location`, n=100)
+
+# Parse out Latitude into it's own column
+new_data <- new_data %>% mutate(Latitude = as.double(str_extract(`Store Location`, "\\d{2}\\.\\d{5}")))
+
+# Parse out Longitude into it's own column
+new_data <- new_data %>% mutate(Longitude = as.double(str_extract(`Store Location`, "\\-\\d{2}\\.\\d{5}")))
+
+# Filter out rows with no data
+new_data <- new_data %>% filter(!is.na(Latitude) | !is.na(Longitude))
+
+#print(data %>% select(`Store Location`))
+#print(new_data %>% select(Latitude, Longitude))
+#print(new_data$Latitude[1], digits=10)
+```
+
+ - check variable types. Pick five variables that need to be converted to a different type and fix those. 
+ 
+```{r}
+# 1. Convert the date
+new_data <- new_data %>% mutate(Date = mdy(Date))
+```
+
+```{r}
+# 2. Convert Vendor Number
+new_data <- new_data %>% mutate(`Vendor Number` = as.integer(`Vendor Number`))
+```
+
+```{r}
+# 3.  Convert Pack to Integer
+new_data <- new_data %>% mutate(Pack = as.integer(Pack))
+```
+
+```{r}
+# 4.  Bottles sold to integer
+new_data <- new_data %>% mutate(`Bottles Sold` = as.integer(`Bottles Sold`))
+```
+
+```{r}
+# 5.  Convert bottle cost to currency
+new_data <- new_data %>% mutate(`Sale (Dollars)` = as.integer(`Sale (Dollars)`))
+#str(new_data)
+```
+ 
+  - extract year, month and day from the variable `Date`
+```{r}
+# Already converted as part of the previous step
+```
+
+
+3. First overview:
+  - Plot a scatterplot of lat and long of store locations. 
+  
+```{r}
+new_data %>% ggplot(aes(x = Longitude, y = Latitude)) + geom_point() 
+```
+
+- Provide a visual breakdown of the liquor category (by `Category Name`). Include volume sold in the breakdown.
+```{r}
+# Separate because I only want to run it once
+new_data$`Category Name` = factor(new_data$`Category Name`)
+```
+
+```{r, fig.width=15, fig.height=7}
+# Obviously this is not the best.  For instance, it doesn't end up showing the largest category.
+#indices = seq(from = 1, to = length(levels(new_data$`Category Name`)), by = 5)
+#labels = new_data$`Category Name`[indices]
+
+# Order the categories by the number sold.  Get their labels for the chart
+temp_data <- new_data %>% arrange(desc(`Volume Sold (Gallons)`))
+head(temp_data)
+# temp_data$`Category Name` = factor(temp_data$`Category Name`)
+labels = temp_data$`Category Name`[1:20]
+
+# This doesn't look quite right.
+new_data %>% ggplot(aes(x = `Category Name`), group_by = `Volume Sold (Gallons)`) + 
+  geom_bar() + 
+  scale_x_discrete(breaks = labels) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) + 
+  labs(x = "Category name", y = "Number sold")
+
+```
+
+4. Find the daily sales liquor sales in Ames in 2018. Summarize number of sales, volume of liquor sold and amount of money spent. Plot volume sold by day (use a scatterplot of volume by day and facet by month). Describe any patterns.
+Find the dates for ISU football home games in Fall 2018. Can you see a pattern? 
+
+```{r, fig.width=10, fig.height=4}
+data <- data %>% mutate(Date = mdy(Date))
+
+# Get the daily sales of liquor in Ames in 2018
+Ames.data = data %>% filter(year(Date) == "2018", City == "Ames")
+str(Ames.data)
+tail(Ames.data$Date)
+
+# # Summarize number of sales, volume of liquor sold and amount of money spent
+# Ames.data %>% mutate(`Money Spent` = `State Bottle Retail` * `Bottles Sold`) %>% select(`Bottles Sold`, `Volume Sold (Gallons)`, `Money Spent`) %>% summary()
+# 
+# # Plot volume sold by day.  Not good - need to collect this together.  It's the chickweight all over again.
+# Ames.data %>% ggplot(aes(x = day(Date), y=`Volume Sold (Gallons)`), group_by = day(Date)) +
+#                   geom_point() +
+#                   facet_grid(cols = vars(month(Date, label=TRUE)))
+#                   # facet_wrap(vars(month(Date, label=TRUE)))
+```
+**I see a couple of patterns, despite the fact there is something wrong with my data.  First, the early Feb sales can possibly be attributed to the Superbowl.  Second, the end of the month seems to show the smallest liquor sales.**
+
+Note: your submission is supposed to be fully reproducible, i.e. the TA and I will 'knit' your submission in RStudio. 
+
+
+For the submission: submit your solution in an R Markdown file and (just for insurance) submit the corresponding html (or Word) file with it. 
