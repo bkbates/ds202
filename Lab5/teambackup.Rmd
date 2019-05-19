@@ -1,0 +1,123 @@
+---
+title: "Lab5"
+author: "Brian Bates, Ravi Patel"
+date: "4/17/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(lubridate)
+library(tidyverse)
+library(maps)
+library(RColorBrewer)
+rm(list=ls())
+```
+
+```{r}
+# Load the accident CSV file
+acc <- read.csv("accident.csv", stringsAsFactors=FALSE)
+str(acc)
+```
+
+## Part I - Accident Data
+1) Are there some days of the week where more accidents happen than on others (use variable DAY_WEEK)?
+```{r}
+acc %>% ggplot(aes(x = wday(DAY_WEEK, label=TRUE))) + geom_bar() + labs(x = "Day of Week", y = "Number of Accidents")
+```
+
+Observing the bar chart above it appears that the day of the week categorized as the 7th has the largest number of accidents.  Per the FARS Analytical User's Manual, this is Saturday.
+
+2) What time of day do accidents happen?
+```{r}
+# I like switching to the horizontal bar chart, but I don't like the lack of labels
+acc %>% ggplot(aes(x = HOUR)) + geom_bar() + coord_flip(xlim=c(0, 23)) + labs(x = "Hour of Day", y = "Number of Accidents")
+```
+
+The **18th hour** of the day, **6 pm**, has the largest number of accidents.  It's also important to note there were outliers in this presentation corresponding to accidents that had unknown crash times.
+
+3) What is the number of accidents with at least one drunk driver?
+
+Note this factor uses a derived data element defined in Appendix B - Rules for Derived Elements.  For the sake of this question, we are simply counting the number of inputs that are not zero.  There were **8769** accidents involving a drunk driver.
+```{r}
+sum(acc$DRUNK_DR != 0)
+```
+
+## Part II - Connecting Data
+
+```{r}
+# Load the person CSV file
+per <- read.csv("person.csv", stringsAsFactors=FALSE)
+# names(per)
+```
+
+Get a subset of the person data where the role of the person involved in the crash was the driver [p.246]
+
+```{r, fig.width=15, fig.height=7}
+# Get the subset of data identifying drivers (1)
+driver <- per %>% filter(PER_TYP == 1)
+
+driver$SEX = factor(driver$SEX)
+levels(driver$SEX) <- c("Male", "Female", "NotReported", "Unknown")
+
+head(driver$SEX, 100)
+
+driverAcc <- inner_join(driver, acc, by = "ST_CASE")
+driverAcc <- filter(driverAcc, HOUR.y <= 24 & (SEX == "Male" | SEX == "Female"))
+
+ggplot(driverAcc, aes(x = HOUR.y, fill=SEX)) +
+  # geom_bar(position="fill") + 
+  geom_bar() +
+  scale_color_brewer() +
+  facet_wrap(~wday(DAY_WEEK, label=TRUE)) +
+  labs(
+    x = "Hour of the Day",
+    y = "Count",
+    title = "Accidents by day per hour by gender"
+  )
+
+```
+
+## PART III - Connecting Data and Making Maps
+
+Create a choropleth map of accidents by county.  First, we read in the GLC data.  Because the columns names do not match the **acc** and **person** column names for the join, we need to clean the GLC first.
+
+```{r}
+# Join the accidents data , GLCs, and appropriate map data
+GLC <- readxl::read_xlsx("GLC.xlsx")
+
+# Convert the column names we need for the merge
+names(GLC)[names(GLC) == "State Code"] <- "STATE"
+names(GLC)[names(GLC) == "County Code"] <- "COUNTY"
+
+# Clean up GLC data - 
+GLC$STATE <- as.integer(GLC$STATE)                    # chr -> numeric
+GLC$COUNTY <- as.integer(GLC$COUNTY)                  # chr -> numeric
+GLC$region <- str_to_lower(GLC$`State Name`)          # Need lower case state names
+str(GLC)
+
+map.data <- inner_join(GLC, acc, by=c("STATE", "COUNTY"))
+str(map.data)
+
+states <- map_data('state')
+str(states)
+
+map.data <- left_join(map.data, states, by="region")
+
+```
+
+
+1) Visualize the number of accidents in each county using a choropleth map.
+```{r}
+ggplot(acc.map, aes(x = lat, y = long)) + 
+  geom_polygon(aes(group=group))
+```
+
+2) Can you find seasonal trends
+```{r}
+
+```
+
+## SOURCES
+
+[1] FARS Analytical User's Manual.  https://crashstats.nhtsa.dot.gov/Api/Public/ViewPublication/812602

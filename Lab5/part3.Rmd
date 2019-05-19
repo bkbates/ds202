@@ -1,0 +1,65 @@
+---
+title: "Part3"
+author: "Brian Bates"
+date: "4/19/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(lubridate)
+library(tidyverse)
+library(maps)
+library(RColorBrewer)
+rm(list=ls())
+```
+
+```{r}
+# Load the accident CSV file
+acc <- read.csv("accident.csv", stringsAsFactors=FALSE)
+
+# Dimensional reduction
+acc <- acc %>% select(STATE, COUNTY, WEATHER, WEATHER1, WEATHER2)
+str(acc)
+```
+
+```{r}
+# Join the accidents data , GLCs, and appropriate map data
+GLC <- readxl::read_xlsx("GLC.xlsx")
+
+# Convert the column names we need for the merge
+names(GLC)[names(GLC) == "State Code"] <- "STATE"
+names(GLC)[names(GLC) == "County Code"] <- "COUNTY"
+
+# Clean up GLC data - 
+GLC$STATE <- as.integer(GLC$STATE)                    # chr -> numeric
+GLC$COUNTY <- as.integer(GLC$COUNTY)                  # chr -> numeric
+GLC$region <- str_to_lower(GLC$`State Name`)          # Need lower case state names
+
+# Dimensional reduction
+GLC <- GLC %>% select(STATE, COUNTY, region)
+str(GLC)
+```
+
+```{r}
+states <- map_data('state')
+states <- states %>% select(-subregion, -order)
+str(states)
+```
+
+```{r}
+# Merge acc and GLC
+#map.data <- inner_join(acc, GLC)
+map.data <- inner_join(GLC, states)
+str(map.data)
+```
+
+```{r}
+map.data <- inner_join(map.data, acc)
+str(map.data)
+```
+
+```{r}
+ggplot(map.data, aes(x = lat, y = long)) + 
+  geom_polygon(aes(group=group))
+```

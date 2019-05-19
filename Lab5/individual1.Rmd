@@ -1,0 +1,83 @@
+---
+title: "individual1"
+author: "Brian Bates"
+date: "4/17/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+library(lubridate)
+
+rm(list=ls())
+```
+
+## Load and Clean Data
+
+The CSV files were saved locally to improve performance
+
+```{r}
+
+acc <- read.csv("accident.csv", stringsAsFactors=FALSE)
+str(acc)
+```
+
+## Exploratory Analysis
+
+1)  Let's look more at drunk drivers.  Before, we found that the number of accident involving drunk drivers, was 8769.
+```{r}
+num.drunk.dr <- sum(acc$DRUNK_DR != 0)
+total.accidents = dim(acc)[1]
+
+cat(sep="" , "Of the " , total.accidents , " accidents recorded, " , (num.drunk.dr / total.accidents)*100 , "% are fatal accidents involving alcohol.")
+```
+
+```{r}
+per <- read.csv("person.csv", stringsAsFactors=FALSE)
+str(per)
+```
+
+Look at a breakdown of accidents by age and sex
+
+```{r}
+per$SEX <- factor(per$SEX) #, levels=c("Male", "Female", "NotReported", "Unknown"))
+str(per$SEX)
+
+age.dat <- per
+
+age.dat %>% filter(AGE < 100) %>% filter(SEX == 1 | SEX == 2) %>% ggplot(aes(x = AGE, fill=SEX)) + geom_histogram() + labs(title="Accident breakdown by age and sex")
+```
+
+Look at a breakdown of accidents involving alcohol by age and sex
+```{r}
+age.dat %>% filter(AGE < 100) %>% filter(SEX == 1 | SEX == 2) %>% filter(DRINKING == 1) %>% ggplot(aes(x = AGE, fill=SEX)) + geom_histogram() + labs(title="Accidents involving alcohol by age and sex")
+```
+
+Let's repeat this, but this time examine drugs
+```{r}
+age.dat %>% filter(AGE < 100) %>% filter(SEX == 1 | SEX == 2) %>% filter(DRUGS == 1) %>% ggplot(aes(x = AGE, fill=SEX)) + geom_histogram() + labs(title="Accidents involving drugs by age and sex")
+```
+
+So far it's pretty obvious that Males outnumber Females in terms of fatal accidents involving drugs and alcohol but in both sexes the dominant age groups are the mid-twenties.
+
+
+In recent years, penalties for accidents involving work zones has increased.  The data below shows that Construction work zones suffer the most fatalities.
+```{r}
+# This still doesn't work to get the legend
+# acc$WRK_ZONE = factor(acc$WRK_ZONE, levels=c("None", "Construction", "Maintenance", "Construction or Maintenance", "Utility", "Work Zone, Type Unknown", "Not reported"))
+acc$WRK_ZONE = factor(acc$WRK_ZONE)
+str(acc)
+
+# Look at which type of work zone has the most fatalities
+acc %>% filter(YEAR >= 1982 & WRK_ZONE != 0) %>% ggplot(aes(WRK_ZONE)) + geom_bar()
+```
+
+## OTHER QUESTIONS
+- Who died in the accident - SEAT_POS
+- Work zone accidents
+- Look at the lower age group and see if the kids were in REST_USE (child safety seat).  Too much filtering due to reporting style changes.
+- Airbag deployments and ejections
