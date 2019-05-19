@@ -1,0 +1,157 @@
+---
+title: 'Homework #6'
+author: "Brian Bates"
+date: "4/16/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+rm(list=ls())
+library(tidyverse)
+library
+library(ggrepel)
+```
+
+## Top dogs
+
+In this homework, you will try to reproduce the fantastic infographic for [top dogs](https://informationisbeautiful.net/visualizations/best-in-show-whats-the-top-data-dog/), originally produced by David McCandless. The raw data can be found [here](https://docs.google.com/spreadsheets/d/1l_HfF5EaN-QgnLc2UYdCc7L2CVrk0p3VdGB1godOyhk/edit#gid=10). You can download this file by File -- Download As -- Microsoft Excel (.xlsx).
+
+**Submission instructions**: Create a folder named `ds202_hw6`, and name the RMarkDown file including your solutions `hw6.Rmd` under this folder. For the submission, create a GitHub repository named `ds202_hw6` under your GitHub account, and push both `hw6.Rmd` and the knitted `hw6.html` before the deadline. I will assume you use the same GitHub username as for your HW5 submission. The latest version of your homework appearing on GitHub before the deadline is graded. *It is crucial to follow the exact folder structure and file names*, so that your homework can be reproduced and graded by an automated script. This homework is **due on April 25** before class.
+
+1. Import the data and clean appropriately. To read in the data, you can use `readxl::read_xlsx('fileNameHere', sheet='sheetNameHere')`. Required data are in the sheets `Best in show` and `Best in show full sheet`. Take extra care on the column names and the first few rows of the data frame after read in.
+```{r}
+# Read the first data sheet in here
+bis.full <- readxl::read_xlsx('kib.xlsx', sheet='Best in show full sheet', skip=2)
+
+# Delete the first row
+bis.full <- bis.full[-1,]
+# str(bis.full)
+
+# Get relevant columns and then rename them
+bis.full <- bis.full %>% select(1, "category", "datadog score", 6, "size category", "intelligence category")
+colnames(bis.full) <- c("Breed", "Category", "Score", "Popularity", "Size", "Intelligence")
+```
+
+## Score
+
+```{r}
+bis.full <- bis.full %>% filter(!is.na(bis.full$Score))
+```
+
+## Size
+Factor the sizes of dogs and check the levels for instances when sizes are not present (NA's)
+
+```{r}
+bis.full$Size = factor(bis.full$Size, levels=c("small", "medium", "large"))
+levels(bis.full$Size)
+
+levels(bis.full$Size) <- c("sml", "med", "lrge")
+levels(bis.full$Size)
+```
+
+## Category
+Factor the categories of dogs and check the levels.  It shows the sames seven categories we need.
+
+```{r}
+bis.full$Category = factor(bis.full$Category)
+levels(bis.full$Category) <- c("Herding", "Hound", "Non-sporting", "Sporting", "Terrier", "Toy", "Working")
+```
+
+## Popularity
+
+```{r}
+# Adjust the popularity score as numeric
+bis.full <- bis.full %>% filter(!is.na(bis.full$Popularity))
+bis.full$Popularity = as.numeric(bis.full$Popularity)
+
+```
+
+## Intelligence
+
+Looking at the unique values for intelligence we see there are not the same categories listed in the original plot and some dogs lack any score at all.  Dogs with no data or na data are removed.
+
+```{r}
+unique(bis.full$Intelligence)
+
+# Eliminate dogs that are "no data" or "NA"
+bis.full <- bis.full %>% filter(!is.na(Intelligence))
+bis.full <- bis.full %>% filter(Intelligence != "no data")
+
+# Change intelligence to dumb or clever
+bis.full <- bis.full %>% mutate(Intelligence = ifelse(Intelligence == "Brightest" | Intelligence == "Excellent" | Intelligence == "Average", "clever", "dumb"))
+
+# Factor
+bis.full$Intelligence = factor(bis.full$Intelligence)
+levels(bis.full$Intelligence)
+
+str(bis.full)
+```
+
+
+2. Create a graphics similar to the  [top dogs](https://informationisbeautiful.net/visualizations/best-in-show-whats-the-top-data-dog/) figure. Your figure need to display the following information with appropriate plotting elements:
+
+```{r, fig.width=14, fig.height=10}
+# Basic plot with points
+plt <- bis.full %>% ggplot(aes(x = Score, y = Popularity, shape=Intelligence, label=Breed, color=Category)) + geom_point(aes(size=Size))
+
+# Color the points the same colors found in the original plot
+cols <- c('Herding' = '#CB7057', 'Hound' = '#3E3267', 'Non-sporting' = '#618446', 'Sporting' = '#A22729', 'Terrier' = '#A77619', 'Toy' = '#5A1429', 'Working' = '#293E3C')
+plt <- plt + scale_color_manual(values = cols)
+
+# Intelligence - this is not working well, lost the fill of the colors by adding this
+plt <- plt + scale_shape_manual(values=c(15,16))
+# plt <- plt + scale_fill_manual(values = cols)
+
+# Eliminate the default theme to make our own
+plt <- plt + theme_void()
+
+# Reverse the Popularity axis order
+plt <- plt + scale_y_reverse()
+
+# Line Segments
+plt <- plt + geom_hline(yintercept=75) + geom_vline(xintercept=2.3)
+
+# Data point labels.  The overlap is ridiculous
+#plt <- plt + geom_text(aes(label=Breed), check_overlap=TRUE, vjust=-1.5)
+plt <- plt + geom_label_repel()
+
+# Legends
+
+# Labels
+plt <- plt + annotate(geom="text", x = 1, y = 80, label="Score", size = 4)
+plt <- plt + annotate(geom="text", x = 2.45, y = 0.25, label="Popularity", size=4)
+
+# 4 Corners
+plt <- plt + annotate(geom="text", x = 1.2, y = 1, label="Inexplicably Overrated", size=6)
+plt <- plt + annotate(geom="text", x = 3.5, y = 1, label="Hot Dogs!", size=6)
+plt <- plt + annotate(geom="text", x = 1, y = 170, label="The Rightly Ignored", size=6)
+plt <- plt + annotate(geom="text", x = 3.5, y = 170, label="Overlooked Treasures", size=6)
+
+plt
+```
+
+
+
+- breed of dog -> (Breed)
+- type of dog  -> (Category)
+- size of dog  -> (Size)
+- data score   -> (Score)
+- popularity   -> (Popularity)
+- intelligence of the dog  -> (Intelligence)
+- appropriate legends & explanation
+
+Hints and Notes:
+
+- The breed of dog can be displayed without the silhouttes (text only is fine)
+- Avoid (too much) overlap!
+- Choose a good color scheme. -> Manually copied colors from original plot
+- Your submission is supposed to be fully reproducible, i.e. the TA and I will 'knit' your submission in RStudio. 
+
+
+## Credits
+
+1) Silhouettes: https://github.com/moldach/dataRbeautiful/tree/gh-pages/data
