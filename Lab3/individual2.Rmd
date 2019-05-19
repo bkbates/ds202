@@ -1,0 +1,90 @@
+---
+title: "individual2"
+author: "Ravi Patel"
+date: "February 19, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+HAPPY <- readRDS('HAPPY.rds')
+str(HAPPY)
+```
+
+Question 1:
+```{r}
+HAPPY[HAPPY == "IAP" | HAPPY == "DK"| HAPPY == 'NA'] <- NA  
+str(HAPPY)
+```
+
+Question 2:
+```{r}
+HAPPY$AGE[HAPPY$AGE == '89 OR OLDER'] <- 89
+HAPPY$AGE <- as.numeric(HAPPY$AGE)
+str(HAPPY)
+```
+
+Question 3:
+```{r}
+col <- c('HAPPY', 'SEX', 'MARITAL', 'DEGREE', 'FINRELA', 'HEALTH', 'PARTYID', 'POLVIEWS')
+HAPPY[col] <- lapply(HAPPY[col], factor)
+str(HAPPY)
+
+h <- HAPPY
+levels(h$MARITAL)
+h$MARITAL <- factor(h$MARITAL, levels = c('NEVER MARRIED', 'MARRIED', 'SEPARATED', 'DIVORCED', 'WIDOWED'))
+
+levels(h$DEGREE)
+h$DEGREE <- factor(h$DEGREE, levels = c('LT HIGH SCHOOL', 'HIGH SCHOOL', 'JUNIOR COLLEGE', 'BACHELOR', 'GRADUATE'))
+
+levels(h$FINRELA)
+h$FINRELA <- factor(h$FINRELA, levels = c('FAR BELOW AVERAGE', 'BELOW AVERAGE', 'AVERAGE', 'ABOVE AVERAGE', 'FAR ABOVE AVERAGE'))
+
+levels(h$HEALTH)
+h$HEALTH <- factor(h$HEALTH, levels = c('POOR', 'FAIR', 'GOOD', 'EXCELLENT'))
+
+levels(h$PARTYID)
+h$PARTYID <- factor(h$PARTYID, levels = c('STRONG DEMOCRAT', 'NOT STR DEMOCRAT', 'IND,NEAR DEMOCRAT', 'INDEPENDENT', 'IND,NEAR REP', 'NOT STR REPUBLICAN', 'STRONG REPUBLICAN', 'OTHER PARTY'))
+
+levels(h$POLVIEWS)
+h$POLVIEWS <- factor(h$POLVIEWS, levels = c('EXTREMELY LIBERAL', 'LIBERAL', 'SLIGHTLY LIBERAL', 'MODERATE', 'SLIGHTLY CONSERVATIVE', 'CONSERVATIVE', 'EXTREMLY CONSERVATIVE'))
+
+HAPPY <- h
+str(HAPPY)
+```
+
+```{r}
+library(ggplot2)
+ggplot(HAPPY, aes(x = HAPPY)) + geom_bar()
+```
+```{r}
+ggplot(HAPPY, aes(x = YEAR)) + geom_bar()
+```
+```{r}
+ggplot(HAPPY, aes(x = AGE)) + geom_bar()
+```
+```{r}
+ggplot(HAPPY, aes(x = SEX)) + geom_bar()
+```
+```{r}
+ggplot(HAPPY, aes(x = MARITAL)) + geom_bar()
+```
+```{r}
+ggplot(HAPPY, aes(x = DEGREE)) + geom_bar()
+```
+```{r}
+ggplot(HAPPY, aes(x = FINRELA)) + geom_bar()
+```
+```{r}
+ggplot(HAPPY, aes(x = HEALTH)) + geom_bar()
+```
+```{r}
+ggplot(HAPPY, aes(x = PARTYID)) + geom_bar()
+```
+```{r}
+ggplot(HAPPY, aes(x = POLVIEWS)) + geom_bar()
+```
+

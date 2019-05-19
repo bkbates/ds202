@@ -1,0 +1,40 @@
+---
+title: "Lab3"
+author: "Brian Bates, Ravi Patel"
+date: "2/19/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(ggplot2)
+
+```
+
+Question 1:
+The first plot shows the distribution of degrees and how each degree was portioned into female and male. While the second plot shows the distribution of a individuals financials ccompared to the their degree. 
+
+```{r}
+hclean <- HAPPY
+str(hclean)
+ggplot(hclean, aes(x = DEGREE, fill = SEX)) + geom_bar()
+```
+```{r}
+ggplot(hclean, aes(x = FINRELA, fill = DEGREE)) + geom_bar()
+```
+
+Question 2: A mosaic comparing Health, Sex and Degree into determining happiness.
+```{r}
+library(ggmosaic)
+ggplot(hclean) +
+  geom_mosaic(aes(x = product(DEGREE), fill = HEALTH)) +
+  facet_grid(SEX~HAPPY) + 
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+```
+
+Question 3: What was learned from the data set was that males and females with higher levels of educaiton are happier. In addition, males and females with better health are happier. 
+

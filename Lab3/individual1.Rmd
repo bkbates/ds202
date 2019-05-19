@@ -1,0 +1,76 @@
+---
+title: "Individual1"
+author: "Brian Bates"
+date: "2/19/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+rm(list=ls())
+library(tidyverse)
+library(dplyr)
+```
+
+## Setup
+```{r}
+# Read the RDS data into a dataframe and look at the structure
+df = readRDS("HAPPY.rds")
+str(df)
+```
+```{r}
+# Part 1: Cleaning data 1
+# Convert 'IAP', 'DK', and 'NA' character values into numeric NA values
+df[df == 'IAP' | df == 'DK' | df == 'NA'] = NA
+```
+
+```{r}
+# Part 1: Cleaning data 2
+# Convert age into numeric value, ignoring NA values
+df$AGE[df$AGE == '89 OR OLDER'] = 89
+df$AGE = as.numeric(df$AGE, na.rm=TRUE)
+str(df)
+```
+
+```{r}
+# Factoring data
+df$SEX = factor(df$SEX, levels=c("Male", "Female"))
+```
+
+```{r}
+# Factor the MARITAL group by average age
+marital.df = df %>% group_by(MARITAL) %>% summarise(avg = mean(AGE, na.rm=TRUE))
+
+# Determine the order of the levels based on average age
+level.order = order(marital.df$avg)
+
+# Refactor using the new level order
+df$MARITAL = factor(df$MARITAL, levels=marital.df$MARITAL[level.order])
+```
+
+```{r}
+# Factoring decree
+df$DEGREE = factor(df$DEGREE, levels=c("LT HIGH SCHOOL", "HIGH SCHOOL", "JUNIOR COLLEGE", "BACHELOR", "GRADUATE"))
+```
+
+```{r}
+df$HAPPY = factor(df$HAPPY, levels=c("NOT TOO HAPPY", "PRETTY HAPPY", "VERY HAPPY"))
+```
+
+```{r}
+df$HEALTH = factor(df$HEALTH, levels=c("POOR", "FAIR", "GOOD", "EXCELLENT"))
+```
+
+```{r}
+df$FINRELA = factor(df$FINRELA, levels=c("FAR BELOW AVERAGE", "BELOW AVERAGE", "AVERAGE", "ABOVE AVERAGE", "FAR ABOVE AVERAGE"))
+```
+
+```{r}
+# This particular factor order is based on Democrats being "LEFT" and Republicans "RIGHT"
+df$PARTYID = factor(df$PARTYID, levels=c("STRONG DEMOCRAT", "NOT STRONG DEMOCRAT", "IND, NEAR DEM", "INDEPENDENT", "IND, NEAR REP", "NOT STR REPUBLICAN", "STRONG REPUBLICAN", "OTHER PARTY"))
+
+```
+
+```{r}
+df$POLVIEWS = factor(df$POLVIEWS, levels=c("EXTREMELY LIBERAL", "LIBERAL", "SLIGHTLY LIBERAL", "MODERATE", "SLGHTLY CONSERVATIVE", "CONSERVATIVE", "EXTRMLY CONSERVATIVE"))
+```
