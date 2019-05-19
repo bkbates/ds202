@@ -1,0 +1,29 @@
+---
+title: "Lab 2"
+author: "Ravi Patel; rspatel"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Most of the ratings are between 2.5 and 3.5. There are very few ratings above 4.5. There are 5 total outliers  
+```{r}
+choco <- read.csv("https://xdaiisu.github.io/ds202materials/hwlabs/choco.csv")
+
+hist(choco$Rating)
+```
+
+```{r}
+boxplot(choco$Rating)
+```
+
+The rating of the chocolate does not depend on the percentage of cocoa.
+```{r}
+plot(choco$Rating, choco$Cocoa.Pct)
+```
+
+
+
+

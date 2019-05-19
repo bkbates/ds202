@@ -1,0 +1,76 @@
+---
+title: "ds202_lab2"
+author: "Brian Bates (bkbates), "
+date: "2/5/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+# Read in the CSV file
+choco = read.csv("choco.csv")
+```
+
+
+**Question 1: What is the overall number of chocolate bars rated?**  
+The average rating for a choclate bar is 3.19. The total number of chocolate bars rated is 1852.
+```{r}
+mean(choco$Rating)
+dim(choco)[1]
+```
+
+**Question 2: How does the number of ratings depend upon the year?**  
+There was a trend of increasing number of reviews from 2006-2015, following a sharp decline in 2017.
+
+```{r}
+c <- table(choco$Review.Date)
+barplot(c, main="Reviews per Year", xlab="Year", ylab="Reviews")
+```
+<br/>
+**Questin 3:  How do ratings compare across different company locations?**
+```{r}
+t = table(choco$Company.Location)
+order(t, decreasing=TRUE)
+
+first = t[58]
+first
+second = t[19]
+second
+third = t[8]
+third
+```
+
+The companies with the most ratings, in decreasing order, are: U.S.A., France, and Canada.  We can run summary statistics across the ratings of each company but a better approach is to visualize it with a boxplot.  
+
+```{r}
+# Construct a new data frame holding only the data of the top three companies
+df = choco[choco$Company.Location == "U.S.A." | choco$Company.Location == "France" | choco$Company.Location == "Canada", ]
+
+# Refactor the Company.Location.
+df$Company.Location = factor(df$Company.Location, levels=c("U.S.A.", "France", "Canada"))
+
+# Boxplot of ratings for each company provides a visual representation of the summary data
+boxplot(df$Rating ~ df$Company.Location, main="Ratings of Top Three Locations", xlab="Company Location", ylab="Rating")
+```
+
+**Question 4 & 5: Brainstorm and write down an interesting question that can be answer from the dataset. The question should not duplicate the questions above.**
+<br/>
+As an extra it is interesting to see where the the cocoa percent was for the top three company locations in the context of individual question two.
+```{r, fig.width=7, fig.height=7}
+m = matrix(data=c(1, 1, 1, 1, 2, 2, 2, 2), nrow=8, ncol = 1, byrow=TRUE)
+layout(m)
+
+boxplot(df$Rating ~ df$Company.Location, main="Ratings of Top Three Locations", xlab="Company Location", ylab="Rating")
+boxplot(df$Cocoa.Pct ~ df$Company.Location, main="Ratings of Top Three Locations", xlab="Company Location", ylab="Cocoa Percent")
+```
+<br/>
+Another interesting question is to see who are the top companies in the top company location (USA).
+```{r}
+# All USA data
+usa.data = choco[(choco$Company.Location == "U.S.A."), ]
+
+# Top 10 companies in the USA
+(highest.levels = levels(reorder(usa.data$Company, usa.data$Rating))[1:10])
+
+```

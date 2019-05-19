@@ -1,0 +1,34 @@
+---
+title: "ds202_lab2"
+author: "Brian Bates, bkbates"
+date: "2/5/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+choco = read.csv("choco.csv")
+head(choco)
+```
+
+1.  How are ratings distributed
+```{r}
+hist(choco$Rating, main="Rating distribution", xlab="Ratings")
+```
+<br/>
+Another view of the distribution is to use a density plot
+```{r}
+plot(density(choco$Rating), main="Density plot of ratings", xlab="Rating")
+```
+
+
+2.  Do ratings depend on the percentage of cocao?
+```{r}
+boxplot(Rating ~ factor(Cocoa.Pct), data=choco, main="Ratings vs Cocoa Percentage", xlab="Percent of Cocoa", ylab="Rating")
+
+```
+
+The answer seems to be yes.  From the boxplot, the higher average ratings occur between 63 and 70% chocolate.  **You could also calculate the mean value for data in each 10% range and plot those in a bar chart: [x-axis is each 10% range and y-axis is average rating]**
